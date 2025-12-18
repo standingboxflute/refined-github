@@ -322,6 +322,11 @@
 		"screenshot": "https://github-production-user-asset-6210df.s3.amazonaws.com/83146190/258220965-4743b9b9-2aef-41b3-a905-ccf8d7beb74e.png"
 	},
 	{
+		"id": "hide-bot-comments",
+		"description": "Hides comments from bots",
+		"css": true
+	},
+	{
 		"id": "hide-navigation-hover-highlight",
 		"description": "Removes the file hover effect in the repo file browser.",
 		"css": true,
