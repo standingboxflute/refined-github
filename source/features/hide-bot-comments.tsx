@@ -75,7 +75,7 @@ function hideComments() {
 		if (elementExists('.Label', comment)) {
 			const label = $('.Label', comment).textContent;
 			if (label === 'bot') {
-				if (index > 1 && index < array.length - 1) {
+				if (index > 0 && index < array.length - 1) {
 					hideComment(comment);
 				}
 			}
