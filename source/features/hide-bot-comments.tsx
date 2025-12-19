@@ -1,9 +1,9 @@
 import './hide-bot-comments.css'
 import React from 'dom-chef';
-import {$} from 'select-dom/strict.js';
-import {$$, countElements, elementExists} from 'select-dom';
+import { $ } from 'select-dom/strict.js';
+import { $$, countElements, elementExists } from 'select-dom';
 import * as pageDetect from 'github-url-detection';
-import delegate, {type DelegateEvent} from 'delegate-it';
+import delegate, { type DelegateEvent } from 'delegate-it';
 
 import delay from '../helpers/delay.js';
 import features from '../feature-manager.js';
@@ -13,20 +13,20 @@ let currentCount = 0;
 
 let observer: MutationObserver = new MutationObserver((mutations) => {
 	if (shouldObserve) {
-		let shouldUpdate:boolean = false;
+		let shouldUpdate: boolean = false;
 		mutations.forEach((mutation) => {
-			if(mutation.addedNodes.length > 0) {
+			if (mutation.addedNodes.length > 0) {
 				shouldUpdate = true;
 			}
 		});
 
-		if(shouldUpdate) {
+		if (shouldUpdate) {
 			hideComments();
 		}
 	}
 })
 
-async function unhide(event:DelegateEvent): Promise<void> {
+async function unhide(event: DelegateEvent): Promise<void> {
 	shouldObserve = false;
 	currentCount = 0;
 	observer.disconnect;
@@ -44,21 +44,21 @@ async function unhide(event:DelegateEvent): Promise<void> {
 	$('.rgh-hidden-bot-comment').scrollIntoView();
 	event.delegateTarget.parentElement!.remove();
 	$('.discussion-timeline-actions').prepend(
-				<p className="rgh-bot-comments-note">
-					<button className="btn-link text-empahsized rgh-hide-bot-comments" type="button">Hide bot comments</button>
-				</p>
+		<p className="rgh-bot-comments-note">
+			<button className="btn-link text-empahsized rgh-hide-bot-comments" type="button">Hide bot comments</button>
+		</p>
 	)
 	delegate('.rgh-hide-bot-comments', 'click', hide);
 }
 
-async function hide(event:DelegateEvent) {
+async function hide(event: DelegateEvent) {
 	event.delegateTarget.parentElement!.remove();
 	hideComments();
 	setupObserver();
 }
 
 function hideComment(comment: HTMLElement): void {
-	if(!comment.hidden) {
+	if (!comment.hidden) {
 		comment.hidden = true;
 		comment.classList.add('rgh-hidden-bot-comment')
 	}
@@ -70,35 +70,38 @@ function init(): void {
 }
 
 function hideComments() {
-	for(const commentText of $$('.js-timeline-item')) {
+	$$('.js-timeline-item').forEach((commentText, index, array) => {
 		const comment = commentText.closest('.js-timeline-item')!;
-		if (!elementExists('.Label', comment)) {
-			continue;
+		if (elementExists('.Label', comment)) {
+			const label = $('.Label', comment).textContent;
+			if (label === 'bot') {
+				if (index > 1 && index < array.length - 1) {
+					hideComment(comment);
+				}
+			}
 		}
-		const label = $('.Label', comment).textContent;
-		if(label === 'bot') {
-			hideComment(comment);
-		}
-	}
+	});
 
-	const botCount = countElements('.rgh-hidden-bot-comment');
-	if (botCount > currentCount) {
-		currentCount = botCount;
+	const hiddenCount = countElements('.rgh-hidden-bot-comment');
+	if (hiddenCount > 0) {
 		if (elementExists('.discussion-timeline-actions .rgh-bot-comments-note')) {
 			$('.discussion-timeline-actions .rgh-bot-comments-note').replaceWith(<p className="rgh-bot-comments-note">
-					{`${botCount} bot comment${botCount > 1 ? 's were' : 'was'} automatically hidden.  `}
-					<button className="btn-link text-emphasized rgh-unhide-bot-comments" type="button">Show</button>
-				</p>);
+				{`${hiddenCount} bot comment${hiddenCount > 1 ? 's were' : 'was'} automatically hidden.  `}
+				<button className="btn-link text-emphasized rgh-unhide-bot-comments" type="button">Show</button>
+			</p>);
 		} else {
-			$('.discussion-timeline-actions').prepend(
-				<p className="rgh-bot-comments-note">
-					{`${botCount} bot comment${botCount > 1 ? 's were' : 'was'} automatically hidden.  `}
-					<button className="btn-link text-emphasized rgh-unhide-bot-comments" type="button">Show</button>
-				</p>,
-			);
-			delegate('.rgh-unhide-bot-comments', 'click', unhide)
+			if (hiddenCount > currentCount) {
+				$('.discussion-timeline-actions').prepend(
+					<p className="rgh-bot-comments-note">
+						{`${hiddenCount} bot comment${hiddenCount > 1 ? 's were' : 'was'} automatically hidden.  `}
+						<button className="btn-link text-emphasized rgh-unhide-bot-comments" type="button">Show</button>
+					</p>,
+				);
+				delegate('.rgh-unhide-bot-comments', 'click', unhide)
+			}
 		}
 	}
+	currentCount = hiddenCount;
 }
 
 function setupObserver() {
