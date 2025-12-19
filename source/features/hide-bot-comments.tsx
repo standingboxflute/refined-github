@@ -70,16 +70,17 @@ function init(): void {
 }
 
 function hideComments() {
-	for(const commentText of $$('.js-timeline-item')) {
+	$$('.js-timeline-item').forEach((commentText, index, array) => {
 		const comment = commentText.closest('.js-timeline-item')!;
-		if (!elementExists('.Label', comment)) {
-			continue;
+		if (elementExists('.Label', comment)) {
+			const label = $('.Label', comment).textContent;
+			if (label === 'bot') {
+				if (index > 1 && index < array.length - 1) {
+					hideComment(comment);
+				}
+			}
 		}
-		const label = $('.Label', comment).textContent;
-		if(label === 'bot') {
-			hideComment(comment);
-		}
-	}
+	});
 
 	const botCount = countElements('.rgh-hidden-bot-comment');
 	if (botCount > 0) {
