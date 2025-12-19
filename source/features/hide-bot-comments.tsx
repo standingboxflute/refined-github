@@ -9,6 +9,7 @@ import delay from '../helpers/delay.js';
 import features from '../feature-manager.js';
 
 let shouldObserve: boolean;
+let currentCount = 0;
 
 let observer: MutationObserver = new MutationObserver((mutations) => {
 	if (shouldObserve) {
@@ -27,6 +28,7 @@ let observer: MutationObserver = new MutationObserver((mutations) => {
 
 async function unhide(event:DelegateEvent): Promise<void> {
 	shouldObserve = false;
+	currentCount = 0;
 	observer.disconnect;
 	for (const comment of $$('.rgh-hidden-bot-comment')) {
 		comment.hidden = false;
@@ -52,7 +54,6 @@ async function unhide(event:DelegateEvent): Promise<void> {
 async function hide(event:DelegateEvent) {
 	event.delegateTarget.parentElement!.remove();
 	hideComments();
-	shouldObserve = true;
 	setupObserver();
 }
 
@@ -65,7 +66,6 @@ function hideComment(comment: HTMLElement): void {
 
 function init(): void {
 	hideComments();
-	shouldObserve = true;
 	setupObserver();
 }
 
@@ -82,7 +82,8 @@ function hideComments() {
 	}
 
 	const botCount = countElements('.rgh-hidden-bot-comment');
-	if (botCount > 0) {
+	if (botCount > currentCount) {
+		currentCount = botCount;
 		if (elementExists('.discussion-timeline-actions .rgh-bot-comments-note')) {
 			$('.discussion-timeline-actions .rgh-bot-comments-note').replaceWith(<p className="rgh-bot-comments-note">
 					{`${botCount} bot comment${botCount > 1 ? 's were' : 'was'} automatically hidden.  `}
